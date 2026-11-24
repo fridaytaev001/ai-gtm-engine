@@ -199,6 +199,9 @@ importers:
       '@gtm/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@moss-js/moss':
+        specifier: ^1.26.0
+        version: 1.26.0
       drizzle-orm:
         specifier: ^0.45.4
         version: 0.45.4(@opentelemetry/api@1.10.0)(postgres@4.1.1)
@@ -1215,6 +1218,46 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@moss-js/moss-core-darwin-arm64@0.39.0':
+    resolution: {integrity: sha512-8DAH5pbVyyqkt1AGufZlpQi5zf373C90R4XvAjyE7KFV1teCALCpNb5vGoG4o0UAeSn0vRPUxlMg8mvIqAhcqA==}
+    engines: {node: '>=20'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@moss-js/moss-core-darwin-x64@0.39.0':
+    resolution: {integrity: sha512-D3sMrxeBZfYdO7Mtq3yZJbCeFw3yMFVKg59btmJ+P7xvEmFBQH3Om2YpnzOiaXE7Yt3xd/Aop0vWApiCiz6vsg==}
+    engines: {node: '>=20'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@moss-js/moss-core-linux-arm64-gnu@0.39.0':
+    resolution: {integrity: sha512-Yby3jHk2EnQBVzC4eL5yZK336DwUQU+KV5fEk44YuFkF62oJLzZNVwdZxTNUHd4yarwbTuwVvMLeJBP6Y9Qh+Q==}
+    engines: {node: '>=20'}
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
+  '@moss-js/moss-core-linux-x64-gnu@0.39.0':
+    resolution: {integrity: sha512-XJzbl45lrLhl3P2cA25MYAvszrvc6ONoLGLEaZJp9G7utI29XJMyZaMAbYN7TUbTzWCv6+4lfPTQSxlU5mA8kQ==}
+    engines: {node: '>=20'}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
+  '@moss-js/moss-core-win32-x64-msvc@0.39.0':
+    resolution: {integrity: sha512-opHqbzaJ5r/URC8hJ9rHAG30mi6izXvb64vh+d2m8lkmdhroGUi8SUvZl2QxDu5Jfgq6LZd9BFydSLWK2j9oWA==}
+    engines: {node: '>=20'}
+    cpu: [x64]
+    os: [win32]
+
+  '@moss-js/moss-core@0.39.0':
+    resolution: {integrity: sha512-4cp0H7dBYD4mS/ZbNN0A6jFFxf68HUBsBnPwcDB4xwemWWHD1LkxWFGhk70581XrAaEaQNzPNphOftSf7aYoAQ==}
+    engines: {node: '>=20'}
+
+  '@moss-js/moss@1.26.0':
+    resolution: {integrity: sha512-N/X2OCI2pTqzxORl13eYo+SyLLX5mRAbNss9ifcI7PRp9k76fUUV5MwJBEob7SLkwGh7V92E+pt7vqPodRL0GA==}
+    engines: {node: '>=20.4'}
 
   '@next/env@16.4.6':
     resolution: {integrity: sha512-SunBjJ6t+oBtecS3dTjdVuMhUogP5wD/vrGL5EVuQYM1iS4O5ilL51HkiJ3sPjMzRHiCChvr4dbaSJbR7F3lxA==}
@@ -3651,6 +3694,33 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.3
       '@jridgewell/sourcemap-codec': 1.6.0
+
+  '@moss-js/moss-core-darwin-arm64@0.39.0':
+    optional: true
+
+  '@moss-js/moss-core-darwin-x64@0.39.0':
+    optional: true
+
+  '@moss-js/moss-core-linux-arm64-gnu@0.39.0':
+    optional: true
+
+  '@moss-js/moss-core-linux-x64-gnu@0.39.0':
+    optional: true
+
+  '@moss-js/moss-core-win32-x64-msvc@0.39.0':
+    optional: true
+
+  '@moss-js/moss-core@0.39.0':
+    optionalDependencies:
+      '@moss-js/moss-core-darwin-arm64': 0.39.0
+      '@moss-js/moss-core-darwin-x64': 0.39.0
+      '@moss-js/moss-core-linux-arm64-gnu': 0.39.0
+      '@moss-js/moss-core-linux-x64-gnu': 0.39.0
+      '@moss-js/moss-core-win32-x64-msvc': 0.39.0
+
+  '@moss-js/moss@1.26.0':
+    dependencies:
+      '@moss-js/moss-core': 0.39.0
 
   '@next/env@16.4.6': {}
 

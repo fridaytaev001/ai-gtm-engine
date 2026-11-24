@@ -71,9 +71,15 @@ For a Gmail test, [enable Gmail API and set up OAuth](https://developers.google.
 
 Register Planner, Builder, Security and Reviewer agents in [Band](https://app.band.ai). Set each agent ID and API key, plus the designated human's `BAND_APPROVER_ID`, in the worker and web environments. Run the worker continuously with `pnpm --filter @gtm/worker start` against the same Postgres database as the web app. Choose **Review in Band** on a draft. The worker creates a room, hands off a draft reference and verified source, and asks the designated human for a decision after the security check. Open **Agents** for the corresponding activity. The room decision updates the app's approval record, and sending is a separate action. These review stages are deterministic and use no model tokens.
 
-## CI
+## Graph reasoning
 
-On an ICP's **Accounts** page, choose **Evaluate paths** to see cited Neo4j warm introductions, buying cycles and competitor displacement. The worker recalculates Tier A scores daily as stored signals age. The read-only graph check uses the fictional LogLens fixture. Run `pnpm --filter @gtm/db exec tsx --env-file=../../.env scripts/graph-smoke.ts` from the workspace (or `pnpm exec tsx --env-file=../../.env scripts/graph-smoke.ts` inside `packages/db`).
+On an ICP's **Accounts** page, choose **Evaluate paths** to see cited Neo4j warm introductions, buying cycles and competitor displacement. The worker recalculates Tier A scores daily as stored signals age. The read-only graph check uses the fictional LogLens fixture. Run `pnpm exec tsx --env-file=../../.env scripts/graph-smoke.ts` inside `packages/db`.
+
+## Moss search
+
+Set `MOSS_PROJECT_ID` and `MOSS_PROJECT_KEY` from your [Moss project](https://portal.usemoss.dev). Open **Pipeline → Ask your pipeline** and choose **Sync search** once. The server reconciles the entities, signals and ICP indexes after discovery, and only indexes verified citations and approved ICP text. Search blends semantic and keyword ranking, supports type, tier and date filters, and rechecks each result against Postgres before displaying it. Private contact data stays in Postgres. The [Moss Next.js guide](https://docs.moss.dev/docs/integrations/nextjs) describes the SDK runtime.
+
+## CI
 
 Every pull request runs lint, typecheck and build.
 

@@ -3,6 +3,8 @@ import { connection } from "next/server";
 import Link from "next/link";
 import { Card } from "@/components/ui";
 import { PipelineBoard } from "@/components/pipeline-board";
+import { PipelineSearch } from "@/components/pipeline-search";
+import { mossConfigured } from "@/lib/moss";
 import { getPipeline, pipelineRevision, stageLabels, stages } from "@/lib/pipeline";
 
 export const metadata = { title: "Pipeline · AI GTM Engine" };
@@ -30,6 +32,7 @@ async function Dashboard() {
   }
   return (
     <>
+      <PipelineSearch enabled={mossConfigured()} />
       {data.cards.length === 0 && <p className="text-sm text-zinc-500">Verify contacts from an <Link href="/icp" className="underline">ICP accounts page</Link> to populate the pipeline.</p>}
       <PipelineBoard cards={data.cards} columns={columns} revision={revision} />
       <div className="grid gap-4 xl:grid-cols-2">

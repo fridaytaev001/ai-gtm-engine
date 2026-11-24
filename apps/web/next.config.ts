@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   // Workspace packages ship TypeScript source; let Next compile them.
   transpilePackages: ["@gtm/core", "@gtm/db", "@gtm/ai", "@gtm/billing"],
   // Server-only drivers stay as Node modules instead of being bundled.
-  serverExternalPackages: ["postgres", "neo4j-driver"],
+  serverExternalPackages: ["postgres", "neo4j-driver", "@moss-js/moss", "@moss-js/moss-core"],
   turbopack: {
     rules: {
       "*.css": {
