@@ -60,6 +60,12 @@ async function IcpDetail({ params }: { params: Promise<{ id: string }> }) {
             </span>
           </div>
           {icp.status !== "approved" && <ApproveButton icpId={icp.id} />}
+          <Link
+            href={`/icp/${icp.id}/leads`}
+            className="text-sm font-medium text-zinc-700 underline underline-offset-4 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+          >
+            Accounts &amp; competitors →
+          </Link>
           {versions.length > 1 && (
             <nav aria-label="Versions" className="flex flex-wrap justify-end gap-1 text-xs">
               {versions.map((v) => (

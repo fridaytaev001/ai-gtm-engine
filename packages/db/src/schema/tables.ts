@@ -148,6 +148,9 @@ export const companies = pgTable(
     fitScore: integer("fit_score"),
     intentScore: integer("intent_score"),
     tier: tier("tier"),
+    fitReason: text("fit_reason"),
+    /** The ICP version whose discovery run found this company. */
+    icpId: uuid("icp_id").references(() => icps.id, { onDelete: "set null" }),
     status: companyStatus("status").notNull().default("candidate"),
     negativeFlags: jsonb("negative_flags").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
     filterReason: text("filter_reason"),
@@ -191,6 +194,7 @@ export const competitors = pgTable("competitors", {
   positioning: text("positioning"),
   pricing: jsonb("pricing").$type<{ tier: string; price: string }[]>().notNull().default(sql`'[]'::jsonb`),
   differentiators: jsonb("differentiators").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+  sourceUrls: jsonb("source_urls").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
   createdAt: createdAt(),
 });
 

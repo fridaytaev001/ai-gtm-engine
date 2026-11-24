@@ -149,29 +149,36 @@ export type ResearchResult = {
   text: string;
   /** Every URL the search tool actually returned (url -> title). Evidence must come from here. */
   sources: Map<string, string>;
+  /** Search-result snippets per URL, when the provider returns them (used to verify quotes). */
+  snippets: Map<string, string>;
   usage: Usage;
 };
 
 /** Let the model research a question with the provider's server-side web search tool. */
-export async function researchWithWebSearch(opts: { system: string; prompt: string; effort: Effort }): Promise<ResearchResult> {
+export async function researchWithWebSearch(opts: { system: string; prompt: string; effort: Effort; searchDepth?: "low" | "medium" | "high" }): Promise<ResearchResult> {
   return activeProvider() === "muse" ? museResearch(opts) : anthropicResearch(opts);
 }
 
-async function museResearch(opts: { system: string; prompt: string; effort: Effort }): Promise<ResearchResult> {
+async function museResearch(opts: { system: string; prompt: string; effort: Effort; searchDepth?: "low" | "medium" | "high" }): Promise<ResearchResult> {
   const response = await museClient().responses.create({
     model: MODELS.muse,
     instructions: opts.system,
     input: opts.prompt,
     reasoning: { effort: opts.effort },
     max_output_tokens: 32000,
-    tools: [{ type: "web_search", search_context_size: "medium" }],
+    tools: [{ type: "web_search", search_context_size: opts.searchDepth ?? "medium" }],
     include: ["web_search_call.results"],
   });
   const sources = new Map<string, string>();
+  const snippets = new Map<string, string>();
   for (const item of response.output as unknown as Record<string, unknown>[]) {
     // Raw search hits (requested via `include`).
     if (item.type === "web_search_call" && Array.isArray(item.results)) {
-      for (const r of item.results as { url?: string; title?: string }[]) if (r.url) sources.set(r.url, r.title ?? r.url);
+      for (const r of item.results as { url?: string; title?: string; snippet?: string }[]) {
+        if (!r.url) continue;
+        sources.set(r.url, r.title ?? r.url);
+        if (r.snippet) snippets.set(r.url, `${snippets.get(r.url) ?? ""} ${r.snippet}`.trim());
+      }
     }
     // Inline citations on the written answer.
     if (item.type === "message" && Array.isArray(item.content)) {
@@ -183,6 +190,7 @@ async function museResearch(opts: { system: string; prompt: string; effort: Effo
   return {
     text: response.output_text ?? "",
     sources,
+    snippets,
     usage: { inputTokens: response.usage?.input_tokens ?? 0, outputTokens: response.usage?.output_tokens ?? 0 },
   };
 }
@@ -220,6 +228,7 @@ async function anthropicResearch(opts: { system: string; prompt: string; effort:
   return {
     text: text.join("\n"),
     sources,
+    snippets: new Map(),
     usage: { inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens },
   };
 }
