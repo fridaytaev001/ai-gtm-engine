@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { evaluateGraph } from "@/app/graph-actions";
+import { displaySourceUrl } from "@/lib/demo-sources";
 import { Button, Card } from "./ui";
 
 type Result = Extract<Awaited<ReturnType<typeof evaluateGraph>>, { ok: true }>["data"];
@@ -55,7 +56,7 @@ function Section({ title, empty, children }: { title: string; empty: boolean; ch
 function Sources({ urls }: { urls: string[] }) {
   return <div className="mt-1 flex flex-wrap gap-2">
     {[...new Set(urls)].filter((url) => url.startsWith("https://")).map((url, index) => (
-      <a className="text-sky-700 underline dark:text-sky-400" key={url} href={url} target="_blank" rel="noreferrer">Source {index + 1} ↗</a>
+      <a className="text-sky-700 underline dark:text-sky-400" key={url} href={displaySourceUrl(url)} target="_blank" rel="noreferrer">Source {index + 1} ↗</a>
     ))}
   </div>;
 }

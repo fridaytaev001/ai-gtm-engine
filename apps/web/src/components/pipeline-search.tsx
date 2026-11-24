@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { askPipeline, rebuildPipelineSearch } from "@/app/moss-actions";
+import { displaySourceUrl } from "@/lib/demo-sources";
 import { Button, Card } from "./ui";
 
 type SearchResult = Extract<Awaited<ReturnType<typeof askPipeline>>, { ok: true }>["data"];
@@ -47,7 +48,7 @@ export function PipelineSearch({ enabled }: { enabled: boolean }) {
           <p>{hit.text}</p>
           <div className="flex gap-3 pt-1 text-xs">
             <Link href={`/icp/${hit.icpId}/leads`} className="underline">Accounts</Link>
-            <a href={hit.sourceUrl} target="_blank" rel="noreferrer" className="underline">Source ↗</a>
+            <a href={displaySourceUrl(hit.sourceUrl)} target="_blank" rel="noreferrer" className="underline">Source ↗</a>
           </div>
         </article>)}
       </div>}

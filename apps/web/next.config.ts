@@ -1,4 +1,9 @@
 import type { NextConfig } from "next";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
+
+const rootEnv = resolve(process.cwd(), "../../.env");
+if (!process.env.VERCEL && existsSync(rootEnv)) process.loadEnvFile(rootEnv);
 
 const nextConfig: NextConfig = {
   cacheComponents: true,

@@ -1,31 +1,35 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
+import { z } from "zod";
 import { ensureWorkspace, getDb, schema } from "@gtm/db";
 import { Card } from "@/components/ui";
 import { OutreachControls } from "@/components/outreach-controls";
+import { displaySourceUrl } from "@/lib/demo-sources";
 
 export const metadata = { title: "Outreach review · AI GTM Engine" };
 export const maxDuration = 300;
 
-export default function ReviewPage() {
+export default function ReviewPage({ searchParams }: { searchParams: Promise<{ icp?: string }> }) {
   return (
     <main className="mx-auto w-full max-w-5xl flex-1 space-y-5 px-6 py-10">
       <h1 className="text-3xl font-semibold tracking-tight">Outreach review</h1>
       <p className="text-sm text-zinc-500">Approve each touch before dispatch. Test emails go to your configured test inbox.</p>
-      <Suspense fallback={<p>Loading review queue…</p>}><Queue /></Suspense>
+      <Suspense fallback={<p>Loading review queue…</p>}><Queue searchParams={searchParams} /></Suspense>
     </main>
   );
 }
 
-async function Queue() {
+async function Queue({ searchParams }: { searchParams: Promise<{ icp?: string }> }) {
   await connection();
+  const icpId = z.uuid().safeParse((await searchParams).icp);
   const { orgId } = await ensureWorkspace();
   const { companies, evidence, leads, messages, people } = schema;
   const db = getDb();
   const rows = await db.select({ leadId: leads.id, name: people.name, company: companies.name }).from(leads)
     .innerJoin(people, eq(leads.personId, people.id)).innerJoin(companies, eq(people.companyId, companies.id))
-    .where(and(eq(leads.orgId, orgId), eq(companies.orgId, orgId), ne(companies.status, "filtered")))
+    .where(and(eq(leads.orgId, orgId), eq(companies.orgId, orgId), ne(companies.status, "filtered"),
+      icpId.success ? eq(leads.icpId, icpId.data) : undefined))
     .orderBy(desc(leads.updatedAt)).limit(50);
   if (!rows.length) return <p className="text-sm text-zinc-500">Verify a contact from the Accounts page to start drafting.</p>;
   const drafts = await db.select().from(messages).where(inArray(messages.leadId, rows.map((row) => row.leadId)))
@@ -47,7 +51,7 @@ async function Queue() {
                 <p className="text-xs text-zinc-500">Touch {message.step}{message.step === 1 ? ` · Variant ${message.variant}` : ""} · {message.channel} · {message.status === "failed" ? "Dispatch needs review" : message.status}</p>
                 {message.subject && <p className="mt-2 font-medium">{message.subject}</p>}
                 <p className="mt-2 whitespace-pre-wrap break-words">{message.body}</p>
-                {source?.startsWith("https://") && <a href={source} target="_blank" rel="noreferrer" className="text-xs text-sky-700 underline dark:text-sky-400">Open verified source ↗</a>}
+                {source?.startsWith("https://") && <a href={displaySourceUrl(source)} target="_blank" rel="noreferrer" className="text-xs text-sky-700 underline dark:text-sky-400">Open verified source ↗</a>}
                 <OutreachControls leadId={row.leadId} message={message} />
               </section>
             );
