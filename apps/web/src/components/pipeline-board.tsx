@@ -10,10 +10,8 @@ type Lead = Awaited<ReturnType<typeof getPipeline>>["cards"][number];
 type Stage = Lead["stage"];
 type Column = { id: Stage; label: string };
 
-export function PipelineBoard({ cards, columns, revision }: { cards: Lead[]; columns: Column[]; revision: string }) {
+export function PipelineLive({ revision }: { revision: string }) {
   const router = useRouter();
-  const [pending, start] = useTransition();
-  const [notice, setNotice] = useState("");
   useEffect(() => {
     const stream = new EventSource("/api/pipeline/events");
     stream.onmessage = (event) => {
@@ -21,7 +19,12 @@ export function PipelineBoard({ cards, columns, revision }: { cards: Lead[]; col
     };
     return () => stream.close();
   }, [revision, router]);
+  return null;
+}
 
+export function PipelineBoard({ cards, columns, revision }: { cards: Lead[]; columns: Column[]; revision: string }) {
+  const [pending, start] = useTransition();
+  const [notice, setNotice] = useState("");
   function move(id: string, stage: Stage) {
     setNotice("");
     start(async () => {
@@ -36,6 +39,7 @@ export function PipelineBoard({ cards, columns, revision }: { cards: Lead[]; col
 
   return (
     <div className="space-y-3">
+      <PipelineLive revision={revision} />
       {notice && <p role="alert" className="text-sm text-rose-700">{notice}</p>}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
         {columns.map((column) => {

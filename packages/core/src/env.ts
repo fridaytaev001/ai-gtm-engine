@@ -42,7 +42,13 @@ export const envSchema = z.object({
   GMAIL_TEST_RECIPIENT: optional,
 
   // Multi-agent orchestration (chunk 10)
-  BAND_API_URL: z.string().url().default("https://api.band.ai"),
+  BAND_API_URL: optional,
+  BAND_WS_URL: optional,
+  BAND_APPROVER_ID: optional,
+  BAND_PLANNER_AGENT_ID: optional,
+  BAND_BUILDER_AGENT_ID: optional,
+  BAND_REVIEWER_AGENT_ID: optional,
+  BAND_SECURITY_AGENT_ID: optional,
   BAND_PLANNER_API_KEY: optional,
   BAND_BUILDER_API_KEY: optional,
   BAND_REVIEWER_API_KEY: optional,
@@ -98,7 +104,8 @@ export function integrationStatus(env: Env = getEnv()) {
       env.BAND_PLANNER_API_KEY &&
         env.BAND_BUILDER_API_KEY &&
         env.BAND_REVIEWER_API_KEY &&
-        env.BAND_SECURITY_API_KEY,
+        env.BAND_SECURITY_API_KEY && env.BAND_APPROVER_ID &&
+        env.BAND_PLANNER_AGENT_ID && env.BAND_BUILDER_AGENT_ID && env.BAND_REVIEWER_AGENT_ID && env.BAND_SECURITY_AGENT_ID,
     ),
     moss: Boolean(env.MOSS_PROJECT_ID && env.MOSS_PROJECT_KEY),
   } as const;

@@ -67,6 +67,10 @@ Open **Review** and draft a sequence for a lead with verified evidence. Muse cho
 
 For a Gmail test, [enable Gmail API and set up OAuth](https://developers.google.com/workspace/gmail/api/auth/scopes) for a test account with the `gmail.send` and `gmail.metadata` scopes. Set `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`, `GMAIL_SENDER`, and `GMAIL_TEST_RECIPIENT`. Use an inbox you own as the test recipient. After approving and sending the first email, reply from that inbox and choose **Check for reply** to update the lead stage. LinkedIn notes are copied and marked as sent by the rep. If a send's outcome is uncertain, inspect the test inbox before taking another action.
 
+## Band review
+
+Register Planner, Builder, Security and Reviewer agents in [Band](https://app.band.ai). Set each agent ID and API key, plus the designated human's `BAND_APPROVER_ID`, in the worker and web environments. Run the worker continuously with `pnpm --filter @gtm/worker start` against the same Postgres database as the web app. Choose **Review in Band** on a draft. The worker creates a room, hands off a draft reference and verified source, and asks the designated human for a decision after the security check. Open **Agents** for the corresponding activity. The room decision updates the app's approval record, and sending is a separate action. These review stages are deterministic and use no model tokens.
+
 ## CI
 
 Every pull request runs lint, typecheck and build.
