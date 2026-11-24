@@ -10,6 +10,7 @@ const links = [
   { href: "/icp", label: "ICPs" },
   { href: "/review", label: "Review" },
   { href: "/dashboard", label: "Pipeline" },
+  { href: "/agents", label: "Agents" },
   { href: "/billing", label: "Credits" },
 ];
 

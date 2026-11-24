@@ -1,5 +1,6 @@
 import { createServer } from "node:http";
 import { APP_NAME, getEnv, integrationStatus } from "@gtm/core";
+import { startBand } from "./band";
 
 /**
  * Agent worker. Later chunks add the pipelines (discovery, enrichment, outreach)
@@ -8,6 +9,10 @@ import { APP_NAME, getEnv, integrationStatus } from "@gtm/core";
  */
 const env = getEnv();
 const startedAt = new Date();
+const band = startBand().catch(() => {
+  console.error("[band] Could not connect configured agents.");
+  return null;
+});
 
 const server = createServer((req, res) => {
   if (req.method === "GET" && req.url === "/health") {
@@ -32,7 +37,7 @@ server.listen(env.WORKER_PORT, () => {
 
 function shutdown(signal: string) {
   console.log(`[worker] ${signal} received, shutting down`);
-  server.close(() => process.exit(0));
+  server.close(() => { void band.then((stop) => stop?.()).finally(() => process.exit(0)); });
 }
 process.on("SIGINT", () => shutdown("SIGINT"));
 process.on("SIGTERM", () => shutdown("SIGTERM"));

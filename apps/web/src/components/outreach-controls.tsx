@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { dispatchOutreach, draftOutreach, reviewOutreach, syncReply } from "@/app/outreach-actions";
+import { queueBandReview } from "@/app/band-actions";
 import type { ActionResult } from "@/app/actions";
 import { ctaOptions } from "@/lib/outreach-copy";
 import { Button } from "./ui";
@@ -31,6 +32,7 @@ export function OutreachControls({ leadId, message }: {
         {message && ["draft", "approved"].includes(message.status) && (
           <>
             {message.status === "draft" && <Button disabled={busy} onClick={() => run(() => reviewOutreach(message.id, "approved"), "Approved.")}>Approve</Button>}
+            {message.status === "draft" && <Button disabled={busy} onClick={() => run(() => queueBandReview(message.id), "Queued for Band review.")}>Review in Band</Button>}
             <select className="rounded border border-zinc-300 bg-transparent px-2 py-1 text-xs dark:border-zinc-700" value={cta} onChange={(event) => setCta(event.target.value)} aria-label="Call to action">
               {ctaOptions.map((option) => <option key={option}>{option}</option>)}
             </select>
