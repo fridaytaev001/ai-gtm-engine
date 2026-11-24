@@ -23,7 +23,9 @@ export async function findWarmIntros(orgId: string, productId: string, limit = 1
      MATCH (connector:Person)-[:WORKS_AT]->(cust)
      MATCH (target:Person {orgId: $orgId})-[:WORKS_AT]->(targetCo:Company)-[:MATCHED_TO]->(:Product {id: $productId})
      MATCH (target)-[r1:PREVIOUSLY_EMPLOYED_AT|STUDIED_AT]->(shared)<-[r2:PREVIOUSLY_EMPLOYED_AT|STUDIED_AT|WORKS_AT]-(connector)
-     WHERE target <> connector AND NOT (targetCo)-[:CUSTOMER_OF]->(:Product {id: $productId})
+     WHERE target <> connector AND targetCo.orgId = $orgId AND connector.orgId = $orgId
+       AND r1.sourceUrl IS NOT NULL AND r2.sourceUrl IS NOT NULL
+       AND NOT (targetCo)-[:CUSTOMER_OF]->(:Product {id: $productId})
      RETURN target.name AS targetName, targetCo.name AS targetCompany,
             shared.name AS via, labels(shared)[0] AS viaType,
             connector.name AS connectorName, cust.name AS connectorCompany,
@@ -37,13 +39,14 @@ export async function findWarmIntros(orgId: string, productId: string, limit = 1
 export type BuyingCycleHit = { company: string; signal: string; observedAt: string; sourceUrl: string };
 
 /** Companies with a job-post signal in the last N days (active evaluation cycle). */
-export async function findBuyingCycles(orgId: string, days = 30): Promise<BuyingCycleHit[]> {
+export async function findBuyingCycles(orgId: string, days = 30, productId?: string): Promise<BuyingCycleHit[]> {
   const res = await runCypher(
     `MATCH (c:Company {orgId: $orgId})-[:HAS_SIGNAL]->(s:Signal {type: 'job_post'})
      WHERE datetime(s.observedAt) >= datetime() - duration({days: $days})
+       AND s.sourceUrl IS NOT NULL AND ($productId IS NULL OR (c)-[:MATCHED_TO]->(:Product {id: $productId}))
      RETURN c.name AS company, s.title AS signal, s.observedAt AS observedAt, s.sourceUrl AS sourceUrl
-     ORDER BY s.observedAt DESC`,
-    { orgId, days: neo4j.int(days) },
+     ORDER BY s.observedAt DESC LIMIT 50`,
+    { orgId, days: neo4j.int(days), productId: productId ?? null },
   );
   return res.records.map((r) => r.toObject() as BuyingCycleHit);
 }
@@ -51,13 +54,15 @@ export async function findBuyingCycles(orgId: string, days = 30): Promise<Buying
 export type DisplacementHit = { company: string; competitor: string; signal: string; sourceUrl: string };
 
 /** Companies using a competitor that also show a churn/renewal-type signal. */
-export async function findDisplacements(orgId: string): Promise<DisplacementHit[]> {
+export async function findDisplacements(orgId: string, productId?: string): Promise<DisplacementHit[]> {
   const res = await runCypher(
     `MATCH (c:Company {orgId: $orgId})-[:USES]->(comp:Competitor)
      MATCH (c)-[:HAS_SIGNAL]->(s:Signal)
-     WHERE s.type IN ['tech_change', 'news'] AND (toLower(s.title) CONTAINS 'renew' OR toLower(s.title) CONTAINS 'migrat' OR toLower(s.title) CONTAINS 'replac')
-     RETURN c.name AS company, comp.name AS competitor, s.title AS signal, s.sourceUrl AS sourceUrl`,
-    { orgId },
+     WHERE comp.orgId = $orgId AND s.sourceUrl IS NOT NULL
+       AND ($productId IS NULL OR (comp)-[:COMPETES_WITH]->(:Product {id: $productId}))
+       AND s.type IN ['tech_change', 'news'] AND (toLower(s.title) CONTAINS 'renew' OR toLower(s.title) CONTAINS 'migrat' OR toLower(s.title) CONTAINS 'replac')
+     RETURN c.name AS company, comp.name AS competitor, s.title AS signal, s.sourceUrl AS sourceUrl LIMIT 50`,
+    { orgId, productId: productId ?? null },
   );
   return res.records.map((r) => r.toObject() as DisplacementHit);
 }

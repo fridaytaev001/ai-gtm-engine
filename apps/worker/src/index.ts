@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
 import { APP_NAME, getEnv, integrationStatus } from "@gtm/core";
 import { startBand } from "./band";
+import { startScoreRefresh } from "./score-refresh";
 
 /**
  * Agent worker. Later chunks add the pipelines (discovery, enrichment, outreach)
@@ -9,6 +10,7 @@ import { startBand } from "./band";
  */
 const env = getEnv();
 const startedAt = new Date();
+const stopScoreRefresh = startScoreRefresh();
 const band = startBand().catch(() => {
   console.error("[band] Could not connect configured agents.");
   return null;
@@ -36,6 +38,7 @@ server.listen(env.WORKER_PORT, () => {
 });
 
 function shutdown(signal: string) {
+  stopScoreRefresh();
   console.log(`[worker] ${signal} received, shutting down`);
   server.close(() => { void band.then((stop) => stop?.()).finally(() => process.exit(0)); });
 }
