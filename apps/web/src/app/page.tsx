@@ -19,12 +19,17 @@ export default function Home() {
   return (
     <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-16 px-6 py-20">
       <header className="flex flex-col gap-4">
-        <p className="text-sm font-medium uppercase tracking-widest text-zinc-500">Setup preview</p>
+        <p className="text-sm font-medium uppercase tracking-widest text-zinc-500">Go-to-market, end to end</p>
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{APP_NAME}</h1>
         <p className="max-w-2xl text-lg leading-8 text-zinc-600 dark:text-zinc-400">
           From a product description to approved, tracked outreach with real buyers, where every
           claim links back to its source.
         </p>
+        <div>
+          <a href="/intake" className="inline-flex rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900">
+            Start with your product
+          </a>
+        </div>
       </header>
 
       <section aria-labelledby="loop" className="flex flex-col gap-6">

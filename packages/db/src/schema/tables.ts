@@ -55,7 +55,7 @@ export type SizeBands = {
   revenueMinUsd?: number;
   revenueMaxUsd?: number;
 };
-export type Persona = { title: string; seniority: string; function?: string };
+export type Persona = { title: string; seniority: string; function?: string; role?: string };
 export type Trigger = { type: string; description: string };
 export type Pricing = { model?: string; annualContractValueUsd?: number; notes?: string };
 export type ReferenceCustomer = { name: string; domain?: string; notes?: string };
@@ -109,6 +109,10 @@ export const icps = pgTable(
     personas: jsonb("personas").$type<Persona[]>().notNull().default(sql`'[]'::jsonb`),
     triggers: jsonb("triggers").$type<Trigger[]>().notNull().default(sql`'[]'::jsonb`),
     regions: jsonb("regions").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    negativeSignals: jsonb("negative_signals").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    /** Adjacent segments the founder accepted from expansion suggestions. */
+    segments: jsonb("segments").$type<{ segment: string; reasoning: string; evidenceUrls: string[] }[]>().notNull().default(sql`'[]'::jsonb`),
+    rationale: text("rationale"),
     /** Confidence 0.00–1.00 per ICP field, e.g. { industries: 0.92, sizeBands: 0.7 } */
     fieldConfidence: jsonb("field_confidence").$type<Record<string, number>>().notNull().default(sql`'{}'::jsonb`),
     createdAt: createdAt(),

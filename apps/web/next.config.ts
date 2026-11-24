@@ -3,8 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
-  // The shared package ships TypeScript source; let Next compile it.
-  transpilePackages: ["@gtm/core"],
+  // Workspace packages ship TypeScript source; let Next compile them.
+  transpilePackages: ["@gtm/core", "@gtm/db", "@gtm/ai"],
+  // Server-only drivers stay as Node modules instead of being bundled.
+  serverExternalPackages: ["postgres", "neo4j-driver"],
   turbopack: {
     rules: {
       "*.css": {
