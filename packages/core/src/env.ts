@@ -17,7 +17,8 @@ export const envSchema = z.object({
   NEO4J_PASSWORD: optional,
   NEO4J_DATABASE: z.string().min(1).default("neo4j"),
 
-  // LLM (chunk 3)
+  // LLM (chunk 3): Meta Muse via the Meta Model API, or Anthropic Claude
+  MODEL_API_KEY: optional,
   ANTHROPIC_API_KEY: optional,
 
   // Discovery (chunk 4)
@@ -87,7 +88,7 @@ export function integrationStatus(env: Env = getEnv()) {
   return {
     postgres: Boolean(env.DATABASE_URL),
     neo4j: Boolean(env.NEO4J_URI && env.NEO4J_USERNAME && env.NEO4J_PASSWORD),
-    claude: Boolean(env.ANTHROPIC_API_KEY),
+    llm: Boolean(env.MODEL_API_KEY || env.ANTHROPIC_API_KEY),
     tavily: Boolean(env.TAVILY_API_KEY),
     flexprice: Boolean(env.FLEXPRICE_API_KEY),
     enrichment: Boolean(env.APOLLO_API_KEY || env.HUNTER_API_KEY || env.PROSPEO_API_KEY),

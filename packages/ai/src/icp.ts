@@ -1,5 +1,4 @@
-import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
-import { FALLBACK_BETA, getAnthropic, MODEL, ModelRefusalError, toUsage, type Usage } from "./client";
+import { generateStructured, type Usage } from "./provider";
 import { IcpSchema, type IcpInference, type ProductDraft } from "./schemas";
 
 const SYSTEM = `You are a B2B go-to-market strategist. From a product record, infer the Ideal Customer Profile (ICP) that a small sales team should target first.
@@ -15,23 +14,14 @@ Rules:
 
 /** Infer a structured ICP with per-field confidence from the product record. */
 export async function inferIcp(product: ProductDraft): Promise<{ icp: IcpInference; usage: Usage }> {
-  const response = await getAnthropic().beta.messages.parse({
-    model: MODEL,
-    max_tokens: 16000,
-    betas: [FALLBACK_BETA],
-    fallbacks: "default",
+  const { data, usage } = await generateStructured({
+    name: "icp",
     system: SYSTEM,
-    output_config: { effort: "medium", format: betaZodOutputFormat(IcpSchema) },
-    messages: [
-      {
-        role: "user",
-        content: `<product>\n${JSON.stringify(product, null, 2)}\n</product>\nInfer the ICP.`,
-      },
-    ],
+    messages: [{ role: "user", content: `<product>\n${JSON.stringify(product, null, 2)}\n</product>\nInfer the ICP.` }],
+    schema: IcpSchema,
+    effort: "medium",
   });
-  if (response.stop_reason === "refusal") throw new ModelRefusalError(response.stop_details?.category);
-  if (!response.parsed_output) throw new Error("ICP response could not be parsed");
-  return { icp: clampConfidence(response.parsed_output), usage: toUsage(response.usage) };
+  return { icp: clampConfidence(data), usage };
 }
 
 const clamp = (n: number) => Math.min(1, Math.max(0, Math.round(n * 100) / 100));

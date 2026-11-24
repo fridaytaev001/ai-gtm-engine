@@ -1,6 +1,4 @@
-import type Anthropic from "@anthropic-ai/sdk";
-import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
-import { FALLBACK_BETA, getAnthropic, MODEL, ModelRefusalError, toUsage, type Usage } from "./client";
+import { generateStructured, type ChatMessage, type Usage } from "./provider";
 import { IntakeTurnSchema, type IntakeTurn, type ProductDraft } from "./schemas";
 
 const SYSTEM = `You run the product intake for a go-to-market engine used by B2B founders.
@@ -13,33 +11,27 @@ You need: product name, what it does, core features or technical constraints, ex
 - If the founder says they have no customers yet or no pricing, record that in notes and do not ask again.
 - Set ready=true once name, description and features are filled and customers and pricing have each been answered or declined.`;
 
-export type ChatTurn = { role: "user" | "assistant"; content: string };
+export type ChatTurn = ChatMessage;
 
 /** One intake chat turn: returns the assistant reply and the updated product record. */
-export async function intakeTurn(
-  history: ChatTurn[],
-  draft: ProductDraft,
-): Promise<{ turn: IntakeTurn; usage: Usage }> {
-  const messages: Anthropic.Beta.BetaMessageParam[] = [
-    ...history.map((t) => ({ role: t.role, content: t.content })),
+export async function intakeTurn(history: ChatTurn[], draft: ProductDraft): Promise<{ turn: IntakeTurn; usage: Usage }> {
+  const messages: ChatMessage[] = [
+    ...history,
     {
       role: "user",
       content: `<current_record>\n${JSON.stringify(draft, null, 2)}\n</current_record>\nUpdate the record from the conversation and write your next message.`,
     },
   ];
-  // The API needs the conversation to start with a user turn.
+  // The conversation must start with a user turn.
   if (messages[0]?.role !== "user") messages.unshift({ role: "user", content: "Hi, I want to find customers." });
 
-  const response = await getAnthropic().beta.messages.parse({
-    model: MODEL,
-    max_tokens: 4000,
-    betas: [FALLBACK_BETA],
-    fallbacks: "default",
+  const { data, usage } = await generateStructured({
+    name: "intake_turn",
     system: SYSTEM,
-    output_config: { effort: "low", format: betaZodOutputFormat(IntakeTurnSchema) },
     messages,
+    schema: IntakeTurnSchema,
+    effort: "low",
+    maxTokens: 4000,
   });
-  if (response.stop_reason === "refusal") throw new ModelRefusalError(response.stop_details?.category);
-  if (!response.parsed_output) throw new Error("Intake response could not be parsed");
-  return { turn: response.parsed_output, usage: toUsage(response.usage) };
+  return { turn: data, usage };
 }

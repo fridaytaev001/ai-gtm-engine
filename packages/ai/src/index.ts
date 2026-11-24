@@ -1,4 +1,4 @@
-export * from "./client";
+export * from "./provider";
 export * from "./schemas";
 export * from "./intake";
 export * from "./icp";
