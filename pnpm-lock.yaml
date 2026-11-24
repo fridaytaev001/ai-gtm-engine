@@ -190,6 +190,9 @@ importers:
       '@gtm/ai':
         specifier: workspace:*
         version: link:../../packages/ai
+      '@gtm/billing':
+        specifier: workspace:*
+        version: link:../../packages/billing
       '@gtm/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -270,6 +273,25 @@ importers:
       zod:
         specifier: ^4.6.7
         version: 4.6.7
+    devDependencies:
+      '@types/node':
+        specifier: ^24.19.2
+        version: 24.19.2
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/billing:
+    dependencies:
+      '@flexprice/sdk':
+        specifier: ^2.1.51
+        version: 2.1.51
+      '@gtm/core':
+        specifier: workspace:*
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^24.19.2
@@ -909,6 +931,10 @@ packages:
   '@eslint/plugin-kit@0.4.1':
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@flexprice/sdk@2.1.51':
+    resolution: {integrity: sha512-d0EiCpwgV4suvZJPZC+mr6VsBLF8Lp7oIr3i8NDzcK0N360eL6CZ6/5ELobaag+HGGaxRzHnZaIOBpQseN9pwg==}
+    engines: {node: '>=18'}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -3353,6 +3379,10 @@ snapshots:
     dependencies:
       '@eslint/core': 0.17.0
       levn: 0.4.1
+
+  '@flexprice/sdk@2.1.51':
+    dependencies:
+      zod: 4.6.7
 
   '@humanfs/core@0.19.2':
     dependencies:

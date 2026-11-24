@@ -329,3 +329,22 @@ export async function runCompetitorMap(icpId: string): Promise<ActionResult<numb
     return fail(err);
   }
 }
+
+// ---------------------------------------------------------------- billing (Flexprice)
+
+/** Demo top-up: a free credit grant on the org's Flexprice wallet (no payment). */
+export async function topUpCredits(credits = 100): Promise<ActionResult<number>> {
+  try {
+    const { getOrgWallet } = await import("@/lib/billing");
+    const { grantCredits } = await import("@gtm/billing");
+    const w = await getOrgWallet();
+    if (!w) return { ok: false, error: "Billing is not configured (FLEXPRICE_API_KEY missing)." };
+    const amount = z.number().int().min(1).max(1000).parse(credits);
+    const balance = await grantCredits(w.walletId, amount, `${w.orgId}:${Date.now()}`);
+    await getDb().insert(events).values({ orgId: w.orgId, type: "credits.topped_up", actorType: "rep", actorId: (await ensureWorkspace()).userId, payload: { credits: amount, balance } });
+    revalidatePath("/billing");
+    return { ok: true, data: balance };
+  } catch (err) {
+    return fail(err);
+  }
+}

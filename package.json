@@ -17,6 +17,7 @@
     "db:seed": "pnpm --filter @gtm/db db:seed",
     "db:check": "pnpm --filter @gtm/db db:check",
     "db:studio": "pnpm --filter @gtm/db db:studio",
-    "graph:setup": "pnpm --filter @gtm/db graph:setup"
+    "graph:setup": "pnpm --filter @gtm/db graph:setup",
+    "billing:setup": "pnpm --filter @gtm/billing setup"
   }
 }
