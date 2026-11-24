@@ -17,7 +17,7 @@ A web app that turns a plain-language product description into approved, tracked
 | 2 Data layer (Postgres + Neo4j + seed) | ALI-20 | ✅ merged (#2) |
 | 3 Intake + ICP engine + expansion | ALI-21 | ✅ merged (#3) |
 | 4 Discovery with verified citations + competitor map | ALI-22 | 🟡 PR #4 open, CI green, **awaiting the user's OK to merge** |
-| 6 Flexprice metering + credit gate | ALI-24 | 🟡 code on branch `zhumataevali206/ali-24-chunk-6-flexprice-metering-credit` (stacked on #4), **untested: needs `FLEXPRICE_API_KEY`**, then `pnpm billing:setup` |
+| 6 Flexprice metering + credit gate | ALI-24 | 🟡 draft PR #5 (stacked on #4); local provisioning, 0.5-credit debit, idempotent retry and insufficient-credit gate verified. Webhook, enrichment integration and dashboard remain pending. |
 | 5 Graph reasoning UI, 7 Enrichment, 8 Outreach + HITL, 9 Dashboard, 10 Band agents, 11 Demo polish, 12 Moss | ALI-23, 25–30 | ⬜ not started |
 
 Suggested order (judged items first): finish 6 → 7+8 together (enrichment uses the credit gate; outreach needs the approval gate) → 9 dashboard → 10 Band → 5 graph UI → 12 Moss → 11 polish.
@@ -54,7 +54,8 @@ Use `generateStructured()` and `researchWithWebSearch()`; don't call SDKs direct
 Keys live in Vercel project `friday-taev/ai-gtm-engine` and locally in root `.env` (template: `.env.example`).
 - Pull Development values: `npx vercel env pull <tmpfile> --environment=development`, then copy needed keys into `.env` by script. **Secret-type Vercel vars can't be pulled**; each key exists as Secret (Production) + Config (Development/Preview).
 - Set: `DATABASE_URL` (Neon via Vercel integration), `NEO4J_URI/USERNAME/PASSWORD/DATABASE` (Aura Free instance `47b99ee9`; `NEO4J_DATABASE` is not `neo4j`), `MODEL_API_KEY` (Muse).
-- Missing: `FLEXPRICE_API_KEY` (US region, `https://us.api.flexprice.io/v1`), enrichment keys (Apollo/Hunter/Prospeo), Gmail OAuth, Band agent keys, Moss keys.
+- `FLEXPRICE_API_KEY` is configured locally and verified against the US endpoint (`https://us.api.flexprice.io/v1`); Vercel still needs configuration.
+- Missing: enrichment keys (Apollo/Hunter/Prospeo), Gmail OAuth, Band agent keys, Moss keys.
 - Production Vercel env does **not** have `NEO4J_*` yet (add when the web app starts querying the graph).
 - Local tools on the user's Windows machine: Node at `%LOCALAPPDATA%\Programs\nodejs`, gh at `%LOCALAPPDATA%\Programs\gh\bin` (may need adding to PATH in old shells), Vercel CLI via `npx vercel` (logged in, project linked).
 
@@ -76,5 +77,5 @@ cd packages/ai && npx tsx --env-file=../../.env scripts/try-discovery.ts [--comp
 - Neo4j: pass integers with `neo4j.int()` (LIMIT etc.).
 - Postgres client uses `prepare: false` (pooler).
 - Seed data is clearly fictional (`*.example` domains) — keep it that way.
-- Flexprice wallet debits use a top-up with `transactionReason: "MANUAL_BALANCE_DEBIT"`; `billing:setup` verifies the balance actually drops — if it doesn't, switch to plan/subscription-based usage billing.
+- Flexprice wallet debits use `POST /wallets/{id}/debit`, with `credits` and `transaction_reason: "MANUAL_BALANCE_DEBIT"`. SDK 2.1.51 does not expose it, so the billing package calls the documented endpoint directly. Top-up rejects debit reasons. `billing:setup` verifies the balance drops, retries do not double-debit, and the credit gate blocks unaffordable actions.
 - Single-workspace mode: `ensureWorkspace()` (org `…0010`, user `…0011`); all tables are org-scoped for later auth.

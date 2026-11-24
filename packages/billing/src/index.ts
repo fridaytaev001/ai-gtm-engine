@@ -55,7 +55,8 @@ export async function ensureBillingAccount(orgId: string, orgName: string): Prom
   try {
     const existing = await fp.customers.getCustomerByExternalId(orgId);
     customerId = existing.id;
-  } catch {
+  } catch (error) {
+    if (!(error && typeof error === "object" && "statusCode" in error && error.statusCode === 404)) throw error;
     const created = await fp.customers.createCustomer({ externalId: orgId, name: orgName });
     customerId = created.id;
   }
@@ -85,6 +86,7 @@ export async function getCreditBalance(walletId: string): Promise<number> {
 }
 
 export function costOf(metric: Metric, quantity = 1): number {
+  if (!Number.isSafeInteger(quantity) || quantity <= 0) throw new Error("Usage quantity must be a positive integer");
   return Math.round(METRICS[metric].credits * quantity * 100) / 100;
 }
 
@@ -119,14 +121,49 @@ export async function chargeUsage(opts: {
     source: "gtm-engine",
     properties: { quantity: String(quantity), credits: String(credits), ...opts.properties },
   });
-  await fp.wallets.topUpWallet(opts.walletId, {
-    transactionReason: "MANUAL_BALANCE_DEBIT",
-    creditsToAdd: String(credits),
-    idempotencyKey: `debit:${opts.eventId}`,
-    description: `${METRICS[opts.metric].label} x${quantity}`,
-    metadata: { metric: opts.metric, eventId: opts.eventId },
+  await debitWallet(opts.walletId, credits, `debit:${opts.eventId}`, {
+    metric: opts.metric, eventId: opts.eventId,
   });
   return { credits, balance: await getCreditBalance(opts.walletId) };
+}
+
+/** SDK 2.1.51 lacks this documented endpoint; top-up only accepts credit grants. */
+async function debitWallet(walletId: string, credits: number, idempotencyKey: string, metadata: Record<string, string>) {
+  const env = getEnv();
+  if (!env.FLEXPRICE_API_KEY) throw new Error("FLEXPRICE_API_KEY is not set");
+  const response = await fetch(`${env.FLEXPRICE_API_HOST.replace(/\/$/, "")}/wallets/${encodeURIComponent(walletId)}/debit`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-api-key": env.FLEXPRICE_API_KEY },
+    signal: AbortSignal.timeout(30_000),
+    body: JSON.stringify({
+      transaction_reason: "MANUAL_BALANCE_DEBIT",
+      credits: String(credits),
+      idempotency_key: idempotencyKey,
+      description: `${METRICS[metadata.metric as Metric].label}`,
+      metadata,
+    }),
+  });
+  if (response.ok) return;
+  const error = await response.json().catch(() => null) as { code?: string } | null;
+  if (response.status === 409 && error?.code === "already_exists") {
+    // A conflict is only a successful retry if the original debit matches.
+    // Flexprice's conflict details echo the request, not the original transaction.
+    for (let offset = 0; offset < 1000; offset += 100) {
+      const page = await getFlexprice().wallets.getWalletTransactions({
+        idPathParameter: walletId, type: "debit", limit: 100, offset, order: "desc",
+      });
+      const items = page.items ?? [];
+      const original = items.find((t) => t.idempotencyKey === idempotencyKey);
+      if (original) {
+        if (Number(original.creditAmount) === credits && original.metadata?.metric === metadata.metric && original.metadata?.eventId === metadata.eventId) return;
+        throw new Error("Billing event ID was already used for a different debit");
+      }
+      if (items.length < 100) break;
+    }
+    throw new Error("Could not verify the original wallet debit; retry with the same event ID");
+  }
+  // Never expose raw responses or request headers containing the API key.
+  throw new Error(`Flexprice wallet debit failed (HTTP ${response.status})`);
 }
 
 /** Free credit grant (demo top-up; no payment). */
@@ -143,8 +180,8 @@ export async function grantCredits(walletId: string, credits: number, reference:
 /** Create the three metered features once (safe to re-run: existing names are skipped). */
 export async function ensureMeteredFeatures(): Promise<string[]> {
   const fp = getFlexprice();
-  const existing = (await fp.features.queryFeature({})) as { items?: { name?: string; meter?: { eventName?: string } }[] };
-  const have = new Set((existing.items ?? []).map((f) => f.meter?.eventName ?? f.name));
+  const existing = await fp.features.queryFeature({ lookupKeys: Object.keys(METRICS), limit: 100 });
+  const have = new Set((existing.items ?? []).map((f) => f.lookupKey));
   const created: string[] = [];
   for (const [eventName, m] of Object.entries(METRICS)) {
     if (have.has(eventName)) continue;
