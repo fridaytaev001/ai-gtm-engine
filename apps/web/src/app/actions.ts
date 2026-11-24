@@ -24,6 +24,7 @@ import { toDraft, toInference } from "@/lib/convert";
 import { persistDiscovery, type DiscoveryRunSummary } from "@/lib/discovery";
 import { getLeadsForIcp } from "@/lib/data";
 import { syncProductGraph } from "@/lib/graph";
+import { mossConfigured, searchMoss, syncMoss } from "@/lib/moss";
 
 const { competitors, events, icpSuggestions, icps, products } = schema;
 
@@ -291,10 +292,18 @@ export async function runDiscovery(icpId: string): Promise<ActionResult<Discover
     const { icp, product } = await loadIcp(icpId);
     const { orgId } = await ensureWorkspace();
     const draft = toDraft(product);
+    const query = [draft.name, ...icp.industries.map((industry) => industry.label), ...icp.triggers.map((trigger) => trigger.description)].join(" ").slice(0, 300);
+    const existingEvidence = mossConfigured()
+      ? await searchMoss(orgId, query, { kind: "signal" }).then((result) => result.hits.map((hit) => hit.sourceUrl)).catch(() => [])
+      : [];
     const { companies: found, stats } = await discoverAccounts(draft, toInference(icp), {
       excludeDomains: draft.referenceCustomers.map((c) => c.domain).filter(Boolean),
+      knownSourceUrls: existingEvidence,
     });
     const { created, filtered } = await persistDiscovery(orgId, icp.id, found);
+    if (mossConfigured()) after(async () => {
+      await syncMoss(orgId).catch(() => getDb().insert(events).values({ orgId, type: "moss.sync_failed", actorType: "system", payload: { icpId } }).catch(() => {}));
+    });
     scheduleGraphSync(icpId, orgId);
     const summary = { ...stats, created, filtered };
     await getDb().insert(events).values({ orgId, type: "discovery.completed", actorType: "agent", actorId: "builder", payload: { icpId, ...summary } });

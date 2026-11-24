@@ -108,7 +108,7 @@ function anglesFor(icp: IcpInference): string[] {
 export async function discoverAccounts(
   product: ProductDraft,
   icp: IcpInference,
-  opts: { excludeDomains?: string[]; onProgress?: (msg: string) => void } = {},
+  opts: { excludeDomains?: string[]; knownSourceUrls?: string[]; onProgress?: (msg: string) => void } = {},
 ): Promise<{ companies: DiscoveredCompany[]; stats: DiscoveryStats; usage: Usage }> {
   const exclude = new Set((opts.excludeDomains ?? []).map(normalizeDomain));
   const angles = anglesFor(icp);
@@ -121,9 +121,12 @@ export async function discoverAccounts(
   )}\n</icp>`;
 
   opts.onProgress?.(`Researching ${angles.length} angles`);
+  const known = opts.knownSourceUrls?.length
+    ? `\nThe pipeline already has evidence from these URLs. Prefer additional sources: ${JSON.stringify(opts.knownSourceUrls)}.`
+    : "";
   const research = await Promise.all(
     angles.map((angle) =>
-      researchWithWebSearch({ system: RESEARCH_SYSTEM, effort: "medium", searchDepth: "high", prompt: `${context}\n\n${angle}` }).catch(
+      researchWithWebSearch({ system: RESEARCH_SYSTEM, effort: "medium", searchDepth: "high", prompt: `${context}\n\n${angle}${known}` }).catch(
         (err: unknown) => {
           console.error("research angle failed", err);
           return null;
