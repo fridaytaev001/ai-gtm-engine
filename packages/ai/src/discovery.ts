@@ -92,12 +92,12 @@ function anglesFor(icp: IcpInference): string[] {
       ? `${icp.sizeBands.headcountMin ?? "?"}-${icp.sizeBands.headcountMax ?? "?"} employees`
       : "";
   const regions = icp.regions.join(", ");
-  const triggers = icp.triggers.slice(0, 4);
+  const triggers = icp.triggers.slice(0, 3);
   const angles = triggers.map(
     (t) => `Find companies in ${industries}${size ? `, ${size}` : ""}${regions ? `, in ${regions}` : ""} where this is happening now: ${t.description}.`,
   );
   if (angles.length < 2) angles.push(`Find fast-growing companies in ${industries}${regions ? ` in ${regions}` : ""} hiring for: ${icp.personas.map((p) => p.title).join(", ")}.`);
-  return angles.slice(0, 4);
+  return angles.slice(0, 3);
 }
 
 /**

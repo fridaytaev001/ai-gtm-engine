@@ -40,7 +40,8 @@ export async function persistDiscovery(orgId: string, icpId: string, found: Disc
       )
     : new Set<string>();
 
-  for (const c of found) {
+  // Companies are saved in parallel (each company's own writes stay in order) to fit the serverless time limit.
+  await Promise.all(found.map(async (c) => {
     const score = scoreCompany(c);
     const negative = c.negativeFlags.map((n) => n.flag);
     const status = negative.length ? ("filtered" as const) : ("candidate" as const);
@@ -142,7 +143,8 @@ export async function persistDiscovery(orgId: string, icpId: string, found: Disc
         verifiedAt: new Date(),
       });
     }
-  }
+  }));
+
   return { created, filtered };
 }
 
