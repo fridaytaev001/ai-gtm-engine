@@ -61,6 +61,12 @@ Run `pnpm --filter @gtm/billing test` for signature, tampering, stale-message an
 
 Add `HUNTER_API_KEY` or `PROSPEO_API_KEY` alongside `FLEXPRICE_API_KEY`. Add `APOLLO_API_KEY` for LinkedIn matching. Open an approved ICP's Accounts page and select **Verify contact** beside a sourced person on a real account. [Apollo](https://docs.apollo.io/reference/people-api-search) looks up a LinkedIn profile, [Hunter](https://hunter.io/api-documentation/v2) looks up and verifies the work email, and [Prospeo](https://prospeo.io/api-docs/enrich-person) can provide a fallback. The app verifies company-domain MX records before marking a Prospeo email valid. Results are cached for seven days. A verified lead costs five credits once per lead, with a balance check before each provider request.
 
+## Outreach review
+
+Open **Review** and draft a sequence for a lead with verified evidence. Muse chooses a quote and calls to action. The app assembles two first-email variants, a LinkedIn note, and a follow-up from those choices. Review each touch separately. Editing offers calls to action that preserve the verified claim. The server checks the latest approval and locks each step before dispatch.
+
+For a Gmail test, [enable Gmail API and set up OAuth](https://developers.google.com/workspace/gmail/api/auth/scopes) for a test account with the `gmail.send` and `gmail.metadata` scopes. Set `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`, `GMAIL_SENDER`, and `GMAIL_TEST_RECIPIENT`. Use an inbox you own as the test recipient. After approving and sending the first email, reply from that inbox and choose **Check for reply** to update the lead stage. LinkedIn notes are copied and marked as sent by the rep. If a send's outcome is uncertain, inspect the test inbox before taking another action.
+
 ## CI
 
 Every pull request runs lint, typecheck and build.
