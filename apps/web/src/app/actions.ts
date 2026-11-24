@@ -5,8 +5,9 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import {
-  emptyDraft,
+  discoverAccounts,
   inferIcp,
+  mapCompetitors,
   intakeTurn,
   ModelRefusalError,
   ProductDraftSchema,
@@ -17,8 +18,10 @@ import {
   type ProductDraft,
 } from "@gtm/ai";
 import { ensureWorkspace, getDb, schema } from "@gtm/db";
+import { toDraft, toInference } from "@/lib/convert";
+import { persistDiscovery, type DiscoveryRunSummary } from "@/lib/discovery";
 
-const { events, icpSuggestions, icps, products } = schema;
+const { competitors, events, icpSuggestions, icps, products } = schema;
 
 export type ActionResult<T> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -217,33 +220,8 @@ export async function approveIcp(icpId: string): Promise<ActionResult<null>> {
 export async function findExpansions(icpId: string): Promise<ActionResult<number>> {
   try {
     const { icp, product } = await loadIcp(icpId);
-    const draft: ProductDraft = {
-      ...emptyDraft(),
-      name: product.name,
-      description: product.description,
-      features: product.features,
-      referenceCustomers: product.referenceCustomers.map((c) => ({ name: c.name, domain: c.domain ?? "" })),
-      pricing: {
-        model: product.pricing.model ?? "",
-        annualContractValueUsd: product.pricing.annualContractValueUsd ?? null,
-        notes: product.pricing.notes ?? "",
-      },
-    };
-    const inference: IcpInference = {
-      industries: icp.industries.map((i) => ({ ...i, confidence: i.confidence ?? 0.5 })),
-      sizeBands: {
-        headcountMin: icp.sizeBands.headcountMin ?? null,
-        headcountMax: icp.sizeBands.headcountMax ?? null,
-        revenueMinUsd: icp.sizeBands.revenueMinUsd ?? null,
-        revenueMaxUsd: icp.sizeBands.revenueMaxUsd ?? null,
-      },
-      personas: icp.personas as IcpInference["personas"],
-      triggers: icp.triggers as IcpInference["triggers"],
-      regions: icp.regions,
-      negativeSignals: icp.negativeSignals,
-      fieldConfidence: icp.fieldConfidence as IcpInference["fieldConfidence"],
-      rationale: icp.rationale ?? "",
-    };
+    const draft = toDraft(product);
+    const inference = toInference(icp);
     const { suggestions } = await suggestExpansions(draft, inference);
     const db = getDb();
     if (suggestions.length) await db.insert(icpSuggestions).values(suggestions.map((s) => ({ icpId: icp.id, ...s })));
@@ -299,4 +277,55 @@ export async function decideSuggestion(icpId: string, input: z.input<typeof Deci
     return fail(err);
   }
   redirect(`/icp/${nextId}`);
+}
+
+// ---------------------------------------------------------------- discovery (Module 2)
+
+/** Find real accounts for an ICP, keeping only facts whose quote is found on the cited page. */
+export async function runDiscovery(icpId: string): Promise<ActionResult<DiscoveryRunSummary>> {
+  try {
+    const { icp, product } = await loadIcp(icpId);
+    const { orgId } = await ensureWorkspace();
+    const draft = toDraft(product);
+    const { companies: found, stats } = await discoverAccounts(draft, toInference(icp), {
+      excludeDomains: draft.referenceCustomers.map((c) => c.domain).filter(Boolean),
+    });
+    const { created, filtered } = await persistDiscovery(orgId, icp.id, found);
+    const summary = { ...stats, created, filtered };
+    await getDb().insert(events).values({ orgId, type: "discovery.completed", actorType: "agent", actorId: "builder", payload: { icpId, ...summary } });
+    revalidatePath(`/icp/${icpId}/leads`);
+    return { ok: true, data: summary };
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+/** Map direct, indirect and alternative competitors for the ICP's product (replaces the previous map). */
+export async function runCompetitorMap(icpId: string): Promise<ActionResult<number>> {
+  try {
+    const { product } = await loadIcp(icpId);
+    const { orgId } = await ensureWorkspace();
+    const { competitors: found } = await mapCompetitors(toDraft(product));
+    const db = getDb();
+    if (found.length) {
+      await db.delete(competitors).where(eq(competitors.productId, product.id));
+      await db.insert(competitors).values(
+        found.map((c) => ({
+          productId: product.id,
+          name: c.name,
+          domain: c.domain || null,
+          category: c.category,
+          positioning: c.positioning,
+          pricing: c.pricing,
+          differentiators: c.differentiators,
+          sourceUrls: c.sourceUrls,
+        })),
+      );
+    }
+    await db.insert(events).values({ orgId, type: "competitors.mapped", actorType: "agent", actorId: "builder", payload: { productId: product.id, count: found.length } });
+    revalidatePath(`/icp/${icpId}/leads`);
+    return { ok: true, data: found.length };
+  } catch (err) {
+    return fail(err);
+  }
 }
