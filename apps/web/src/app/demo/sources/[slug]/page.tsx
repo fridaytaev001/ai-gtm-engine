@@ -1,12 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { demoSources } from "@/lib/demo-sources";
 
 export function generateStaticParams() {
   return Object.keys(demoSources).map((slug) => ({ slug }));
 }
 
-export default async function DemoSourcePage({ params }: { params: Promise<{ slug: string }> }) {
+export default function DemoSourcePage({ params }: { params: Promise<{ slug: string }> }) {
+  return <Suspense fallback={<p className="px-6 py-10">Loading source…</p>}>
+    <DemoSource params={params} />
+  </Suspense>;
+}
+
+async function DemoSource({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   if (!Object.hasOwn(demoSources, slug)) notFound();
   const source = demoSources[slug];
