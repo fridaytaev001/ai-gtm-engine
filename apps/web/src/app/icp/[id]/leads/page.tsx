@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { getLeadsForIcp } from "@/lib/data";
 import { cx } from "@/components/ui";
 import { RunCompetitorsButton, RunDiscoveryButton } from "@/components/discovery-actions";
+import { EnrichContact } from "@/components/enrich-contact";
 
 export const metadata: Metadata = { title: "Leads · AI GTM Engine" };
 
@@ -185,11 +186,27 @@ function AccountsTable({ rows, filteredView }: { rows: LeadsData["leads"]; filte
                       <li key={p.id}>
                         <span className="font-medium">{p.name}</span>
                         <div className="text-zinc-500">{p.title}</div>
+                        {p.email && <div className="break-all">{p.email}</div>}
+                        {p.enrichSource && p.enrichSource !== "discovery" && (
+                          <div className="mt-1 flex flex-wrap gap-1 text-[11px]">
+                            <span className={p.emailStatus === "valid" ? "text-emerald-700 dark:text-emerald-300" : "text-zinc-500"}>
+                              {p.emailStatus === "valid" ? "Verified email" : p.emailStatus === "unknown" ? "Unverified" : p.emailStatus}
+                            </span>
+                            <span className="text-zinc-500">· MX {p.mxValid === true ? "valid" : p.mxValid === false ? "invalid" : "unchecked"}</span>
+                            {p.enrichConfidence !== null && <span>· {Math.round(p.enrichConfidence * 100)}% confidence</span>}
+                          </div>
+                        )}
+                        {p.linkedinUrl?.startsWith("https://www.linkedin.com/in/") && (
+                          <a href={p.linkedinUrl} target="_blank" rel="noopener noreferrer" className="mr-2 text-sky-700 hover:underline dark:text-sky-400">LinkedIn ↗</a>
+                        )}
+                        {p.enrichSource === "hunter" && <a className="mr-2 underline" href="https://hunter.io/">Hunter</a>}
+                        {p.enrichSource === "prospeo" && <a className="mr-2 underline" href="https://prospeo.io/">Prospeo</a>}
                         {p.evidence && (
                           <a href={p.evidence.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-sky-700 hover:underline dark:text-sky-400">
                             source
                           </a>
                         )}
+                        {!filteredView && <EnrichContact personId={p.id} />}
                       </li>
                     ))}
                   </ul>

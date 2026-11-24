@@ -57,6 +57,10 @@ The handler verifies the raw body and timestamp, matches the saved workspace wal
 
 Run `pnpm --filter @gtm/billing test` for signature, tampering, stale-message and replay-ID tests. See the [Flexprice webhook documentation](https://github.com/flexprice/javascript-sdk#handling-webhooks) and [Svix verification guide](https://docs.svix.com/receiving/verifying-payloads/how).
 
+## Contact enrichment
+
+Add `HUNTER_API_KEY` or `PROSPEO_API_KEY` alongside `FLEXPRICE_API_KEY`. Add `APOLLO_API_KEY` for LinkedIn matching. Open an approved ICP's Accounts page and select **Verify contact** beside a sourced person on a real account. [Apollo](https://docs.apollo.io/reference/people-api-search) looks up a LinkedIn profile, [Hunter](https://hunter.io/api-documentation/v2) looks up and verifies the work email, and [Prospeo](https://prospeo.io/api-docs/enrich-person) can provide a fallback. The app verifies company-domain MX records before marking a Prospeo email valid. Results are cached for seven days. A verified lead costs five credits once per lead, with a balance check before each provider request.
+
 ## CI
 
 Every pull request runs lint, typecheck and build.
