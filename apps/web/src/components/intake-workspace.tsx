@@ -71,7 +71,7 @@ export function IntakeWorkspace() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
-      <Card title="Chat" aside={<span className="text-xs text-zinc-500">Claude asks what&apos;s missing</span>}>
+      <Card title="Chat" aside={<span className="text-xs text-zinc-500">The AI asks what&apos;s missing</span>}>
         <div className="flex h-[28rem] flex-col">
           <div className="flex-1 space-y-3 overflow-y-auto pr-1" aria-live="polite">
             {chat.map((m, i) => (

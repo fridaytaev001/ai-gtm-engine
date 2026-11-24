@@ -13,7 +13,7 @@ export default function IntakePage() {
         <p className="text-xs font-medium uppercase tracking-widest text-zinc-500">Step 1</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">Describe your product</h1>
         <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-          Chat or fill the form. When the record is complete, Claude infers who to sell to, with a confidence score on every field.
+          Chat or fill the form. When the record is complete, the AI infers who to sell to, with a confidence score on every field.
         </p>
       </header>
       <IntakeWorkspace />
