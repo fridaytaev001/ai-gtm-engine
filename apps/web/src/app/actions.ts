@@ -3,6 +3,8 @@
 import { and, eq, max } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import { integrationStatus } from "@gtm/core";
 import { z } from "zod";
 import {
   discoverAccounts,
@@ -20,6 +22,8 @@ import {
 import { ensureWorkspace, getDb, schema } from "@gtm/db";
 import { toDraft, toInference } from "@/lib/convert";
 import { persistDiscovery, type DiscoveryRunSummary } from "@/lib/discovery";
+import { getLeadsForIcp } from "@/lib/data";
+import { syncProductGraph } from "@/lib/graph";
 
 const { competitors, events, icpSuggestions, icps, products } = schema;
 
@@ -291,6 +295,7 @@ export async function runDiscovery(icpId: string): Promise<ActionResult<Discover
       excludeDomains: draft.referenceCustomers.map((c) => c.domain).filter(Boolean),
     });
     const { created, filtered } = await persistDiscovery(orgId, icp.id, found);
+    scheduleGraphSync(icpId, orgId);
     const summary = { ...stats, created, filtered };
     await getDb().insert(events).values({ orgId, type: "discovery.completed", actorType: "agent", actorId: "builder", payload: { icpId, ...summary } });
     revalidatePath(`/icp/${icpId}/leads`);
@@ -323,11 +328,24 @@ export async function runCompetitorMap(icpId: string): Promise<ActionResult<numb
       );
     }
     await db.insert(events).values({ orgId, type: "competitors.mapped", actorType: "agent", actorId: "builder", payload: { productId: product.id, count: found.length } });
+    scheduleGraphSync(icpId, orgId);
     revalidatePath(`/icp/${icpId}/leads`);
     return { ok: true, data: found.length };
   } catch (err) {
     return fail(err);
   }
+}
+
+function scheduleGraphSync(icpId: string, orgId: string) {
+  if (!integrationStatus().neo4j) return;
+  after(async () => {
+    try {
+      const data = await getLeadsForIcp(icpId);
+      if (data) await syncProductGraph(data);
+    } catch {
+      await getDb().insert(events).values({ orgId, type: "graph.sync_failed", actorType: "system", payload: { icpId } }).catch(() => {});
+    }
+  });
 }
 
 // ---------------------------------------------------------------- billing (Flexprice)

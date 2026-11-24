@@ -1,6 +1,7 @@
 import "server-only";
 import { and, eq, inArray } from "drizzle-orm";
 import type { DiscoveredCompany, DiscoveryStats } from "@gtm/ai";
+import { scoreSignals } from "@gtm/core";
 import { getDb, schema } from "@gtm/db";
 
 const { companies, evidence, people, signals } = schema;
@@ -10,18 +11,7 @@ const { companies, evidence, people, signals } = schema;
  * Composite = 60% fit + 40% intent; tiers A >= 75, B 50-74, C < 50 (design doc, Module 5).
  */
 export function scoreCompany(c: DiscoveredCompany) {
-  const now = Date.now();
-  let intent = 30;
-  for (const s of c.signals) {
-    const weight = s.type === "job_post" || s.type === "funding" || s.type === "exec_hire" ? 20 : 12;
-    const t = Date.parse(s.observedAt);
-    const ageDays = Number.isFinite(t) ? (now - t) / 864e5 : 120;
-    intent += ageDays <= 30 ? weight : ageDays <= 120 ? weight * 0.6 : weight * 0.3;
-  }
-  intent = Math.round(Math.min(100, intent));
-  const composite = Math.round(c.fitScore * 0.6 + intent * 0.4);
-  const tier: "A" | "B" | "C" = composite >= 75 ? "A" : composite >= 50 ? "B" : "C";
-  return { fit: c.fitScore, intent, composite, tier };
+  return scoreSignals(c.fitScore, c.signals);
 }
 
 /** Save one discovery run: upsert companies, append new signals/people, and write an evidence row per verified fact. */
@@ -62,6 +52,7 @@ export async function persistDiscovery(orgId: string, icpId: string, found: Disc
       status,
       negativeFlags: negative,
       filterReason: negative.length ? negative.join("; ") : null,
+      updatedAt: new Date(),
     };
     const [row] = await db
       .insert(companies)

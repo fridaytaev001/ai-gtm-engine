@@ -7,6 +7,7 @@ import { getLeadsForIcp } from "@/lib/data";
 import { cx } from "@/components/ui";
 import { RunCompetitorsButton, RunDiscoveryButton } from "@/components/discovery-actions";
 import { EnrichContact } from "@/components/enrich-contact";
+import { GraphInsights } from "@/components/graph-insights";
 
 export const metadata: Metadata = { title: "Leads · AI GTM Engine" };
 
@@ -105,6 +106,7 @@ async function Leads({ params, searchParams }: { params: Promise<{ id: string }>
       ) : (
         <AccountsTable rows={tab === "filtered" ? filtered : accounts} filteredView={tab === "filtered"} />
       )}
+      {tab === "accounts" && <div className="mt-6"><GraphInsights icpId={data.icp.id} /></div>}
     </>
   );
 }
@@ -149,6 +151,7 @@ function AccountsTable({ rows, filteredView }: { rows: LeadsData["leads"]; filte
               </td>
               <td className="px-3 py-2.5 text-right font-mono">
                 <div className="text-base font-semibold">{c.composite}</div>
+                {c.scoreChanged && <div className="text-[11px] text-amber-700 dark:text-amber-300">Score changed</div>}
                 <div className="text-[11px] text-zinc-500">
                   fit {c.fitScore} · intent {c.intentScore}
                 </div>

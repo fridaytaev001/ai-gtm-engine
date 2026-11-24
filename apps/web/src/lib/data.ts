@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, gte, inArray } from "drizzle-orm";
 import { ensureWorkspace, getDb, schema } from "@gtm/db";
 
 const { icps, icpSuggestions, products } = schema;
@@ -60,19 +60,24 @@ export async function getLeadsForIcp(icpId: string) {
     .where(inArray(companies.icpId, versionIds))
     .orderBy(desc(companies.fitScore));
   const companyIds = rows.map((r) => r.id);
-  const [sigs, ppl, comps] = await Promise.all([
+  const [sigs, ppl, comps, scoreEvents] = await Promise.all([
     companyIds.length ? db.select().from(signals).where(inArray(signals.companyId, companyIds)).orderBy(desc(signals.observedAt)) : [],
     companyIds.length ? db.select().from(people).where(inArray(people.companyId, companyIds)) : [],
     db.select().from(competitors).where(eq(competitors.productId, detail.product.id)),
+    db.select({ payload: schema.events.payload }).from(schema.events).where(and(eq(schema.events.orgId, detail.product.orgId),
+      eq(schema.events.type, "graph.score_changed"), gte(schema.events.createdAt, new Date(Date.now() - 86_400_000)))),
   ]);
+  const changed = new Set(scoreEvents.map((event) => event.payload.companyId));
   const entityIds = [...sigs.map((s) => s.id), ...ppl.map((p) => p.id), ...companyIds];
-  const ev = entityIds.length ? await db.select().from(evidence).where(inArray(evidence.entityId, entityIds)) : [];
+  const ev = entityIds.length ? await db.select().from(evidence)
+    .where(and(inArray(evidence.entityId, entityIds), eq(evidence.orgId, detail.product.orgId), eq(evidence.verified, true))) : [];
   const quoteFor = new Map(ev.map((e) => [e.entityId, e]));
   const negEvidence = new Map<string, typeof ev>();
   for (const e of ev) if (e.entityType === "company") negEvidence.set(e.entityId, [...(negEvidence.get(e.entityId) ?? []), e]);
 
   const leads = rows.map((c) => ({
     ...c,
+    scoreChanged: changed.has(c.id),
     composite: Math.round((c.fitScore ?? 0) * 0.6 + (c.intentScore ?? 0) * 0.4),
     signals: sigs.filter((s) => s.companyId === c.id).map((s) => ({ ...s, quote: quoteFor.get(s.id)?.quote ?? null })),
     people: ppl.filter((p) => p.companyId === c.id).map((p) => ({ ...p, evidence: quoteFor.get(p.id) ?? null })),

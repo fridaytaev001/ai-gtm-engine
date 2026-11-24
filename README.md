@@ -73,6 +73,8 @@ Register Planner, Builder, Security and Reviewer agents in [Band](https://app.ba
 
 ## CI
 
+On an ICP's **Accounts** page, choose **Evaluate paths** to see cited Neo4j warm introductions, buying cycles and competitor displacement. The worker recalculates Tier A scores daily as stored signals age. The read-only graph check uses the fictional LogLens fixture. Run `pnpm --filter @gtm/db exec tsx --env-file=../../.env scripts/graph-smoke.ts` from the workspace (or `pnpm exec tsx --env-file=../../.env scripts/graph-smoke.ts` inside `packages/db`).
+
 Every pull request runs lint, typecheck and build.
 
 ## Design
