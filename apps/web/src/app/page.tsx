@@ -13,7 +13,6 @@ const integrations = [
   { name: "Band", role: "Multi-agent orchestration" },
   { name: "Flexprice", role: "Usage metering and credits" },
   { name: "Moss", role: "Real-time semantic search" },
-  { name: "Snyk", role: "Security scanning in CI" },
 ];
 
 export default function Home() {

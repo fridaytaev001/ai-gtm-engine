@@ -2,7 +2,7 @@
 
 Turns a plain-language product description into approved, tracked outreach to real buyers, with every claim backed by a source link.
 
-Built for the HackBay hackathon with **Band** (multi-agent orchestration), **Flexprice** (usage-based billing), **Moss** (real-time semantic search) and **Snyk** (security scanning).
+Built for the HackBay hackathon with **Band** (multi-agent orchestration), **Flexprice** (usage-based billing) and **Moss** (real-time semantic search).
 
 ## Repository layout
 
@@ -38,7 +38,7 @@ Health checks: `GET /api/health` (web) and `GET /health` (worker) report which i
 
 ## CI
 
-Every pull request runs lint, typecheck and build, plus Snyk dependency (SCA) and code (SAST) scans. Snyk needs a `SNYK_TOKEN` repository secret; without it the scan is skipped with a warning.
+Every pull request runs lint, typecheck and build.
 
 ## Design
 
