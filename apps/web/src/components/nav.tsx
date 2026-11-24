@@ -8,6 +8,7 @@ import { BalanceSync } from "./balance-sync";
 const links = [
   { href: "/intake", label: "Intake" },
   { href: "/icp", label: "ICPs" },
+  { href: "/review", label: "Review" },
   { href: "/billing", label: "Credits" },
 ];
 

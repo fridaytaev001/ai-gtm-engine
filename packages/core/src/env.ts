@@ -39,6 +39,7 @@ export const envSchema = z.object({
   GMAIL_CLIENT_SECRET: optional,
   GMAIL_REFRESH_TOKEN: optional,
   GMAIL_SENDER: optional,
+  GMAIL_TEST_RECIPIENT: optional,
 
   // Multi-agent orchestration (chunk 10)
   BAND_API_URL: z.string().url().default("https://api.band.ai"),
@@ -92,7 +93,7 @@ export function integrationStatus(env: Env = getEnv()) {
     tavily: Boolean(env.TAVILY_API_KEY),
     flexprice: Boolean(env.FLEXPRICE_API_KEY),
     enrichment: Boolean(env.APOLLO_API_KEY || env.HUNTER_API_KEY || env.PROSPEO_API_KEY),
-    gmail: Boolean(env.GMAIL_CLIENT_ID && env.GMAIL_CLIENT_SECRET && env.GMAIL_REFRESH_TOKEN),
+    gmail: Boolean(env.GMAIL_CLIENT_ID && env.GMAIL_CLIENT_SECRET && env.GMAIL_REFRESH_TOKEN && env.GMAIL_SENDER && env.GMAIL_TEST_RECIPIENT),
     band: Boolean(
       env.BAND_PLANNER_API_KEY &&
         env.BAND_BUILDER_API_KEY &&
