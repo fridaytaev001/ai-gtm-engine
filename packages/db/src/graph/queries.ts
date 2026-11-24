@@ -1,3 +1,4 @@
+import neo4j from "neo4j-driver";
 import { runCypher } from "./client";
 
 /**
@@ -28,7 +29,7 @@ export async function findWarmIntros(orgId: string, productId: string, limit = 1
             connector.name AS connectorName, cust.name AS connectorCompany,
             [u IN [r1.sourceUrl, r2.sourceUrl] WHERE u IS NOT NULL] AS sourceUrls
      LIMIT $limit`,
-    { orgId, productId, limit },
+    { orgId, productId, limit: neo4j.int(limit) },
   );
   return res.records.map((r) => r.toObject() as WarmIntroPath);
 }
@@ -42,7 +43,7 @@ export async function findBuyingCycles(orgId: string, days = 30): Promise<Buying
      WHERE datetime(s.observedAt) >= datetime() - duration({days: $days})
      RETURN c.name AS company, s.title AS signal, s.observedAt AS observedAt, s.sourceUrl AS sourceUrl
      ORDER BY s.observedAt DESC`,
-    { orgId, days },
+    { orgId, days: neo4j.int(days) },
   );
   return res.records.map((r) => r.toObject() as BuyingCycleHit);
 }

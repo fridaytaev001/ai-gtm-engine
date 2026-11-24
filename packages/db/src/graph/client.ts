@@ -24,7 +24,7 @@ export async function runCypher<T extends RecordShape = RecordShape>(
   cypher: string,
   params: Record<string, unknown> = {},
 ): Promise<QueryResult<T>> {
-  return getGraph().executeQuery<QueryResult<T>>(cypher, params, { database: "neo4j" });
+  return getGraph().executeQuery<QueryResult<T>>(cypher, params, { database: getEnv().NEO4J_DATABASE });
 }
 
 /** Unique id + org index per label. Safe to run repeatedly. */
