@@ -4,7 +4,8 @@
  *  2. create the workspace org's customer + prepaid wallet (100 starter credits)
  *  3. charge one graph query (0.5 credits) and confirm the wallet balance dropped
  */
-import { chargeUsage, ensureBillingAccount, ensureMeteredFeatures, getCreditBalance } from "../src";
+import assert from "node:assert/strict";
+import { chargeUsage, costOf, ensureBillingAccount, ensureMeteredFeatures, getCreditBalance } from "../src";
 
 const WORKSPACE_ORG_ID = "00000000-0000-4000-8000-000000000010";
 
@@ -22,4 +23,8 @@ const { balance: after } = await chargeUsage({
   eventId: `setup-selftest-${Date.now()}`,
   properties: { note: "setup self-test" },
 });
-console.log(`Balance ${before} -> ${after} credits (${before - after === 0.5 ? "debit works" : "UNEXPECTED: check wallet debit semantics"})`);
+assert.ok(
+  Math.abs(before - after - costOf("graph_queries_evaluated")) < 1e-9,
+  "Flexprice wallet debit failed: the balance must drop by 0.5 credits. Check wallet debit semantics before enabling billing.",
+);
+console.log(`Balance ${before} -> ${after} credits (debit works)`);
