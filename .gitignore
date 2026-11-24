@@ -8,3 +8,10 @@ dist/
 .DS_Store
 .vercel/
 coverage/
+
+.vercel
+.env*
+
+# Credential files downloaded from providers
+Neo4j-*.txt
+*credentials*.txt

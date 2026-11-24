@@ -15,6 +15,7 @@ export const envSchema = z.object({
   NEO4J_URI: optional,
   NEO4J_USERNAME: optional,
   NEO4J_PASSWORD: optional,
+  NEO4J_DATABASE: z.string().min(1).default("neo4j"),
 
   // LLM (chunk 3)
   ANTHROPIC_API_KEY: optional,
