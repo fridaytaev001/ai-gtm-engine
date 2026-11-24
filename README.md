@@ -38,6 +38,7 @@ Useful scripts:
 | `pnpm db:generate` | Generate a migration after changing `packages/db/src/schema` |
 | `pnpm graph:setup` | Create Neo4j constraints and indexes (needs `NEO4J_*`) |
 | `pnpm db:seed` | Load the fictional LogLens demo data into both databases |
+| `pnpm db:seed:workspace` | Copy the isolated LogLens demo into the app workspace |
 | `pnpm db:check` | Check connectivity to both databases |
 
 Health checks: `GET /api/health` (web) and `GET /health` (worker) report which integrations have keys configured (booleans only).
@@ -85,4 +86,8 @@ Every pull request runs lint, typecheck and build.
 
 ## Design
 
-The full system design (architecture, data model, graph ontology, agent roles, billing and search design) lives in `docs/DESIGN.md` (added in the final chunk).
+See [the implemented design](docs/DESIGN.md) for the architecture, data model, graph queries, approval gate, and sponsor integrations.
+
+## Demo
+
+Run `pnpm db:seed` on a new database, then `pnpm db:seed:workspace` to add the fictional sample to the app. The workspace command leaves existing records and earlier demo decisions in place. Open **Try the LogLens demo** on the home page. Sample citations open fictional references served by the app. See [the demo script](docs/DEMO.md) for the walkthrough and provider checks.

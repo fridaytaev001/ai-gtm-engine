@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
 import Link from "next/link";
+import { z } from "zod";
 import { Card } from "@/components/ui";
 import { PipelineBoard } from "@/components/pipeline-board";
 import { PipelineSearch } from "@/components/pipeline-search";
@@ -10,19 +11,20 @@ import { getPipeline, pipelineRevision, stageLabels, stages } from "@/lib/pipeli
 export const metadata = { title: "Pipeline · AI GTM Engine" };
 const columns = stages.map((id) => ({ id, label: stageLabels[id] }));
 
-export default function DashboardPage() {
+export default function DashboardPage({ searchParams }: { searchParams: Promise<{ icp?: string }> }) {
   return (
     <main className="mx-auto w-full max-w-7xl flex-1 space-y-5 px-6 py-10">
       <h1 className="text-3xl font-semibold tracking-tight">Pipeline</h1>
-      <Suspense fallback={<p>Loading pipeline…</p>}><Dashboard /></Suspense>
+      <Suspense fallback={<p>Loading pipeline…</p>}><Dashboard searchParams={searchParams} /></Suspense>
     </main>
   );
 }
 
-async function Dashboard() {
+async function Dashboard({ searchParams }: { searchParams: Promise<{ icp?: string }> }) {
   await connection();
+  const icpId = z.uuid().safeParse((await searchParams).icp);
   const revision = await pipelineRevision();
-  const data = await getPipeline();
+  const data = await getPipeline(icpId.success ? icpId.data : undefined);
   const segments = new Map<string, number[]>();
   for (const lead of data.cards) {
     const label = `${lead.industry ?? "Unclassified"} · Tier ${lead.tier ?? "—"}`;

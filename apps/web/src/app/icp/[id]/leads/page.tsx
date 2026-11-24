@@ -8,6 +8,7 @@ import { cx } from "@/components/ui";
 import { RunCompetitorsButton, RunDiscoveryButton } from "@/components/discovery-actions";
 import { EnrichContact } from "@/components/enrich-contact";
 import { GraphInsights } from "@/components/graph-insights";
+import { displaySourceUrl } from "@/lib/demo-sources";
 
 export const metadata: Metadata = { title: "Leads · AI GTM Engine" };
 
@@ -205,7 +206,7 @@ function AccountsTable({ rows, filteredView }: { rows: LeadsData["leads"]; filte
                         {p.enrichSource === "hunter" && <a className="mr-2 underline" href="https://hunter.io/">Hunter</a>}
                         {p.enrichSource === "prospeo" && <a className="mr-2 underline" href="https://prospeo.io/">Prospeo</a>}
                         {p.evidence && (
-                          <a href={p.evidence.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-sky-700 hover:underline dark:text-sky-400">
+                          <a href={displaySourceUrl(p.evidence.sourceUrl)} target="_blank" rel="noopener noreferrer" className="text-sky-700 hover:underline dark:text-sky-400">
                             source
                           </a>
                         )}
@@ -227,7 +228,7 @@ function Quote({ quote, url }: { quote: string; url: string }) {
   return (
     <blockquote className="mt-1 border-l-2 border-zinc-200 pl-2 text-xs leading-5 text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
       “{quote.length > 220 ? `${quote.slice(0, 220)}…` : quote}”{" "}
-      <a href={url} target="_blank" rel="noopener noreferrer" className="whitespace-nowrap text-sky-700 hover:underline dark:text-sky-400">
+      <a href={displaySourceUrl(url)} target="_blank" rel="noopener noreferrer" className="whitespace-nowrap text-sky-700 hover:underline dark:text-sky-400">
         {host(url)} ↗
       </a>
     </blockquote>
@@ -265,7 +266,7 @@ function Competitors({ icpId, rows }: { icpId: string; rows: LeadsData["competit
                     {c.domain && <div className="text-xs text-zinc-500">{c.domain}</div>}
                     <div className="mt-1 flex flex-wrap gap-x-2 text-xs">
                       {c.sourceUrls.slice(0, 3).map((u) => (
-                        <a key={u} href={u} target="_blank" rel="noopener noreferrer" className="text-sky-700 hover:underline dark:text-sky-400">
+                        <a key={u} href={displaySourceUrl(u)} target="_blank" rel="noopener noreferrer" className="text-sky-700 hover:underline dark:text-sky-400">
                           {host(u)} ↗
                         </a>
                       ))}

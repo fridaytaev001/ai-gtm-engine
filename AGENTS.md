@@ -18,7 +18,13 @@ A web app that turns a plain-language product description into approved, tracked
 | 3 Intake + ICP engine + expansion | ALI-21 | ✅ merged (#3) |
 | 4 Discovery with verified citations + competitor map | ALI-22 | ✅ merged (#4) |
 | 6 Flexprice metering + credit gate | ALI-24 | ✅ merged (#5); sandbox debit, retries and insufficient-credit gate verified. Provider webhook delivery needs `FLEXPRICE_WEBHOOK_SECRET` and a reachable endpoint. |
-| 5 Graph reasoning UI, 7 Enrichment, 8 Outreach + HITL, 9 Dashboard, 10 Band agents, 11 Demo polish, 12 Moss | ALI-23, 25–30 | ⬜ not started |
+| 7 Contact enrichment | ALI-25 | PR #6. Provider credentials needed for live checks. |
+| 8 Outreach + approval | ALI-26 | PR #7. Gmail test OAuth and inbox needed before a live send. |
+| 9 Pipeline dashboard | ALI-27 | PR #8. Stage board, live audit, reply rates and cost per lead. |
+| 10 Band review | ALI-28 | PR #9. Worker and Band credentials needed for provider verification. |
+| 5 Graph reasoning | ALI-23 | PR #10. Three Neo4j paths verified on the fictional fixture. |
+| 12 Moss search | ALI-30 | PR #11. Project keys and live retrieval verification pending. |
+| 11 Demo polish | ALI-29 | PR #12. Fictional workspace, walkthrough, and design documentation. |
 
 Suggested order (judged items first): finish 6 → 7+8 together (enrichment uses the credit gate; outreach needs the approval gate) → 9 dashboard → 10 Band → 5 graph UI → 12 Moss → 11 polish.
 
