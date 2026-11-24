@@ -17,7 +17,7 @@ A web app that turns a plain-language product description into approved, tracked
 | 2 Data layer (Postgres + Neo4j + seed) | ALI-20 | ✅ merged (#2) |
 | 3 Intake + ICP engine + expansion | ALI-21 | ✅ merged (#3) |
 | 4 Discovery with verified citations + competitor map | ALI-22 | ✅ merged (#4) |
-| 6 Flexprice metering + credit gate | ALI-24 | 🟡 draft PR #5 (stacked on #4); local provisioning, 0.5-credit debit, idempotent retry and insufficient-credit gate verified. Signed webhook + balance refresh implemented; provider delivery needs `FLEXPRICE_WEBHOOK_SECRET` and a reachable endpoint. Enrichment integration and dashboard remain pending. |
+| 6 Flexprice metering + credit gate | ALI-24 | ✅ merged (#5); sandbox debit, retries and insufficient-credit gate verified. Provider webhook delivery needs `FLEXPRICE_WEBHOOK_SECRET` and a reachable endpoint. |
 | 5 Graph reasoning UI, 7 Enrichment, 8 Outreach + HITL, 9 Dashboard, 10 Band agents, 11 Demo polish, 12 Moss | ALI-23, 25–30 | ⬜ not started |
 
 Suggested order (judged items first): finish 6 → 7+8 together (enrichment uses the credit gate; outreach needs the approval gate) → 9 dashboard → 10 Band → 5 graph UI → 12 Moss → 11 polish.
