@@ -11,6 +11,12 @@
     "dev:worker": "pnpm --filter @gtm/worker dev",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "db:generate": "pnpm --filter @gtm/db db:generate",
+    "db:migrate": "pnpm --filter @gtm/db db:migrate",
+    "db:seed": "pnpm --filter @gtm/db db:seed",
+    "db:check": "pnpm --filter @gtm/db db:check",
+    "db:studio": "pnpm --filter @gtm/db db:studio",
+    "graph:setup": "pnpm --filter @gtm/db graph:setup"
   }
 }

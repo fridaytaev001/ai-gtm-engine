@@ -1,0 +1,22 @@
+import { pgEnum } from "drizzle-orm/pg-core";
+
+export const userRole = pgEnum("user_role", ["founder", "rep", "admin"]);
+export const icpStatus = pgEnum("icp_status", ["draft", "approved", "archived"]);
+export const suggestionDecision = pgEnum("suggestion_decision", ["pending", "accepted", "adjusted", "dismissed"]);
+export const companyStatus = pgEnum("company_status", ["candidate", "accepted", "filtered"]);
+export const tier = pgEnum("tier", ["A", "B", "C"]);
+export const emailStatus = pgEnum("email_status", ["unknown", "valid", "risky", "invalid"]);
+export const competitorCategory = pgEnum("competitor_category", ["direct", "indirect", "alternative"]);
+export const signalType = pgEnum("signal_type", ["job_post", "funding", "exec_hire", "tech_change", "news", "other"]);
+export const entityType = pgEnum("entity_type", ["company", "person", "signal", "competitor", "icp_suggestion"]);
+export const leadStage = pgEnum("lead_stage", ["matched", "contacted", "replied", "meeting_booked", "closed_lost"]);
+export const ownerType = pgEnum("owner_type", ["ai", "rep"]);
+export const channel = pgEnum("channel", ["email", "linkedin"]);
+export const messageStatus = pgEnum("message_status", ["draft", "approved", "rejected", "sent", "failed"]);
+export const approvalKind = pgEnum("approval_kind", ["message_send", "schema_change"]);
+export const approvalDecision = pgEnum("approval_decision", ["approved", "edited", "rejected"]);
+export const approvalSource = pgEnum("approval_source", ["app", "band"]);
+export const actorType = pgEnum("actor_type", ["agent", "rep", "system"]);
+export const usageMetric = pgEnum("usage_metric", ["leads_enriched", "outreach_sent", "graph_queries_evaluated"]);
+export const agentName = pgEnum("agent_name", ["planner", "builder", "reviewer", "security"]);
+export const runStatus = pgEnum("run_status", ["running", "succeeded", "failed"]);

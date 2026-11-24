@@ -12,6 +12,7 @@ apps/
   worker/    Node service: pipelines and the Band agents (Planner, Builder, Reviewer, Security)
 packages/
   core/      Shared types, constants and environment validation
+  db/        Postgres schema (Drizzle), Neo4j graph client, ontology and seed scripts
 ```
 
 ## Getting started
@@ -33,6 +34,11 @@ Useful scripts:
 | `pnpm lint` | ESLint |
 | `pnpm typecheck` | TypeScript across all packages |
 | `pnpm build` | Production build |
+| `pnpm db:migrate` | Apply Postgres migrations (needs `DATABASE_URL`) |
+| `pnpm db:generate` | Generate a migration after changing `packages/db/src/schema` |
+| `pnpm graph:setup` | Create Neo4j constraints and indexes (needs `NEO4J_*`) |
+| `pnpm db:seed` | Load the fictional LogLens demo data into both databases |
+| `pnpm db:check` | Check connectivity to both databases |
 
 Health checks: `GET /api/health` (web) and `GET /health` (worker) report which integrations have keys configured (booleans only).
 
