@@ -7,12 +7,14 @@
     ".": "./src/index.ts"
   },
   "scripts": {
+    "test": "tsx --test src/webhook.test.ts",
     "typecheck": "tsc --noEmit",
     "setup": "tsx --env-file-if-exists=../../.env scripts/setup.ts"
   },
   "dependencies": {
     "@flexprice/sdk": "^2.1.51",
-    "@gtm/core": "workspace:*"
+    "@gtm/core": "workspace:*",
+    "svix": "^2.11.1"
   },
   "devDependencies": {
     "@types/node": "^24.19.2",

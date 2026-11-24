@@ -1,6 +1,8 @@
 import { Flexprice } from "@flexprice/sdk";
 import { getEnv } from "@gtm/core";
 
+export { verifyWalletWebhook } from "./webhook";
+
 /**
  * Usage-based billing on Flexprice (design doc → Flexprice metering and credit gating).
  *

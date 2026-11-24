@@ -42,6 +42,21 @@ Useful scripts:
 
 Health checks: `GET /api/health` (web) and `GET /health` (worker) report which integrations have keys configured (booleans only).
 
+## Flexprice billing
+
+Set a US-region Sandbox secret API key in `FLEXPRICE_API_KEY` in the root `.env`, then run `pnpm billing:setup`. This provisions the usage meters and wallet and checks a 0.5-credit debit, idempotent retry, and the insufficient-credit gate. The key stays on the server.
+
+To enable wallet notifications:
+
+1. Configure `FLEXPRICE_API_KEY` in the Vercel environment used by the preview. Open the preview once so the workspace wallet is linked in Postgres.
+2. In Flexprice's webhook endpoint settings, register `https://<preview-host>/api/webhooks/flexprice`. The endpoint must be publicly reachable by Flexprice (Vercel deployment protection must permit webhook delivery).
+3. Subscribe to `wallet.credit_balance.dropped` and `wallet.credit_balance.recovered`. Wallet update/transaction and ongoing-balance notifications are also supported.
+4. Copy the endpoint's Svix signing secret into `FLEXPRICE_WEBHOOK_SECRET` in the matching Vercel environment, then redeploy the preview. This is a separate secret from the API key.
+
+The handler verifies the raw body and timestamp, matches the saved workspace wallet, and inserts one audit event per Svix message ID. Unknown event types and unrelated wallets are acknowledged without changes; invalid signatures return 400 and database failures return 503 for retry. Open tabs check a database revision every 10 seconds while visible, then refresh the authoritative Flexprice balance only when it changes. Late or duplicate notifications never overwrite the balance.
+
+Run `pnpm --filter @gtm/billing test` for signature, tampering, stale-message and replay-ID tests. See the [Flexprice webhook documentation](https://github.com/flexprice/javascript-sdk#handling-webhooks) and [Svix verification guide](https://docs.svix.com/receiving/verifying-payloads/how).
+
 ## CI
 
 Every pull request runs lint, typecheck and build.
