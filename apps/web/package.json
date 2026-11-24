@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@gtm/ai": "workspace:*",
+    "@gtm/billing": "workspace:*",
     "@gtm/core": "workspace:*",
     "@gtm/db": "workspace:*",
     "drizzle-orm": "^0.45.4",
